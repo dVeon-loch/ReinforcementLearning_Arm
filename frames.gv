@@ -1,0 +1,14 @@
+digraph G {
+"dummy_link" -> "base_link"[label=" Broadcaster: /arm/robot_state_publisher\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"world" -> "dummy_link"[label=" Broadcaster: /arm/robot_state_publisher\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"wrist_link" -> "dummy_eef"[label=" Broadcaster: /arm/robot_state_publisher\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"forearm_link" -> "wrist_link"[label=" Broadcaster: /arm/robot_state_publisher\nAverage rate: 50.201\nBuffer length: 4.98\nMost recent transform: 13.933\nOldest transform: 8.953\n"];
+"plat_link" -> "lock_link"[label=" Broadcaster: /arm/robot_state_publisher\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "plat_link"[label=" Broadcaster: /arm/robot_state_publisher\nAverage rate: 50.201\nBuffer length: 4.98\nMost recent transform: 13.933\nOldest transform: 8.953\n"];
+"shoulder_link" -> "forearm_link"[label=" Broadcaster: /arm/robot_state_publisher\nAverage rate: 50.201\nBuffer length: 4.98\nMost recent transform: 13.933\nOldest transform: 8.953\n"];
+"lock_link" -> "shoulder_link"[label=" Broadcaster: /arm/robot_state_publisher\nAverage rate: 50.201\nBuffer length: 4.98\nMost recent transform: 13.933\nOldest transform: 8.953\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 13.947"[ shape=plaintext ] ;
+}->"world";
+}

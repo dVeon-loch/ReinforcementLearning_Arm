@@ -1,0 +1,13 @@
+diff --git a/src/arm_bringup/scripts/td3_train_test.py b/src/arm_bringup/scripts/td3_train_test.py
+index 4a52c5c..ee714a5 100644
+--- a/src/arm_bringup/scripts/td3_train_test.py
++++ b/src/arm_bringup/scripts/td3_train_test.py
+@@ -5,7 +5,7 @@ import rospy
+ import numpy as np
+ 
+ normalise_obs = False
+-static_goal = False
++static_goal = True
+ testing = False
+ slow_step = True
+ # conda activate RL_arm_noetic && source devel/setup.bash && tensorboard --logdir /home/devon/RL_Arm_noetic/results

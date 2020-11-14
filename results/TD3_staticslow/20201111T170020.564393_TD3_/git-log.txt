@@ -1,0 +1,56 @@
+commit 363fc98b41c80492e4c16675d7915178f704591a
+Author: dVeon-loch <blochdevon@gmail.com>
+Date:   Tue Nov 10 17:22:55 2020 +0200
+
+    Currently evaluating algorithms
+
+commit f0c08ed02264050e9ebf4ab15b0afddaae94d156
+Author: dVeon-loch <blochdevon@gmail.com>
+Date:   Tue Nov 3 10:41:49 2020 +0200
+
+    moved over to tf2rl library for algos. altered env
+    
+    Env needs to meet requirements for openaigym env.
+    - class inherits from gym base class
+    - observation and action spaces must be defined by gym Spaces
+    
+    Started training with three tf2rl algos,
+    - DDPG
+    - SAC
+    - PPO
+
+commit 704c7fb3d9e6cd801de47d2007861b90f4ba935c
+Author: dVeon-loch <blochdevon@gmail.com>
+Date:   Tue Oct 27 22:39:05 2020 +0200
+
+    environment working. Starting algo implementation
+
+commit cf6a83518367625b0e328f1c6a33ab401bfdf859
+Author: dVeon-loch <blochdevon@gmail.com>
+Date:   Mon Oct 26 20:15:34 2020 +0200
+
+    trying to fix environment
+
+commit 96684f69c32c00b9ae376988c756ceb0799e6f99
+Author: dVeon-loch <blochdevon@gmail.com>
+Date:   Sun Oct 25 21:01:57 2020 +0200
+
+    started redefining environment for tf agents
+
+commit c8832c9ae1113b311cddce79dcd8efde6b7436e2
+Author: dVeon-loch <39005321+dVeon-loch@users.noreply.github.com>
+Date:   Fri Oct 23 21:36:55 2020 +0200
+
+    Create README.md
+
+commit d587031a25959f7bb40142591f81b549942b47c1
+Author: Devon Bloch <blochdevon@gmail.com>
+Date:   Fri Oct 23 21:33:35 2020 +0200
+
+    gitignore
+
+commit e09135d1c8c1a6938adbdf8c8d7993426a9c54c8
+Author: Devon Bloch <blochdevon@gmail.com>
+Date:   Fri Oct 23 21:33:18 2020 +0200
+
+    initial commit. confirmed test.py works

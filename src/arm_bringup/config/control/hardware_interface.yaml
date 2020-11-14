@@ -1,0 +1,12 @@
+generic_hw_control_loop:
+  loop_hz: 50
+  cycle_time_error_threshold: 0.03
+
+# Settings for ros_control hardware interface
+hardware_interface:
+  joints:
+    - arm/plat_joint
+    - arm/shoulder_joint
+    - arm/forearm_joint
+    - arm/wrist_joint
+  sim_control_mode: 0 # 0: position, 1: velocity

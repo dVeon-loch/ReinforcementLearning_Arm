@@ -1,0 +1,43 @@
+diff --git a/src/arm_bringup/scripts/arm_env.py b/src/arm_bringup/scripts/arm_env.py
+index a8bb485..699e0bb 100644
+--- a/src/arm_bringup/scripts/arm_env.py
++++ b/src/arm_bringup/scripts/arm_env.py
+@@ -268,11 +268,8 @@ class ArmEnvironment(gym.Env):
+             y = trans.transform.translation.y
+             z = trans.transform.translation.z
+             trans = np.array([x,y,z])
+-            self.eef_pos = trans
+-            #print("EEF Position: {}".format(trans))
+-            
++            self.eef_pos = trans            
+             goal_distance = distance.euclidean(trans,self.goal_pos)
+-            #print("Goal is at: {} \n".format(np.array2string(self.goal_pos)))
+             return goal_distance
+         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+             print("tf lookupTransform error")
+@@ -377,6 +374,7 @@ class ArmEnvironment(gym.Env):
+         # diff_joint = np.zeros(self.num_joints)
+         state = np.concatenate([joint_angles,self.goal_pos])#.reshape(1, -1)
+         state = np.asarray(state, dtype = np.float32)
++        self.joint_state = np.zeros(4)
+         self.joint_pos = np.zeros(4)
+ 
+         return state
+@@ -386,7 +384,7 @@ class ArmEnvironment(gym.Env):
+     def step(self, action):
+         action = np.array(action)
+ 
+-        self.joint_pos = np.clip(self.joint_pos + action,a_min=self.joint_pos_low,a_max=self.joint_pos_high)
++        self.joint_pos = np.clip(self.joint_state + action,a_min=self.joint_pos_low,a_max=self.joint_pos_high)
+         self.all_joints.move(self.joint_pos)
+         if(self.slow_step):
+             rospy.sleep(0.35)
+@@ -398,7 +396,7 @@ class ArmEnvironment(gym.Env):
+             done = True
+         else:
+             done = False
+-        state = np.concatenate([joint_angles,self.goal_pos])#.reshape(1, -1)
++        state = np.concatenate([joint_angles,self.goal_pos])
+         state = np.asarray(state, dtype = np.float32)
+ 
+         return state, reward, done, {}

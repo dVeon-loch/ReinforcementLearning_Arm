@@ -1,0 +1,7 @@
+Used observation normalization
+
+Used a Reward of 50 for each step that it was in the goal zone
+
+Results corresponding to this model:
+
+20201031T201336.213837_DDPG_ -------> 20201101T111422.286550_DDPG_

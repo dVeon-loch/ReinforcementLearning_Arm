@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <!-- Gazebo parameters -->
+
+  <arg name="sim" default="true"/>
+  <arg name="world" default="empty"/>
+  <arg name="robot" default="arm"/>
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <!-- launch the gazebo world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find arm_bringup)/worlds/$(arg world).world"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="$(arg headless)"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+  <!-- send urdf to param server -->
+  <param name="arm/robot_description" textfile="$(find arm_description)/urdf/arm_gazebo.urdf"/>
+
+  <!-- Send robot states to tf -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen" ns="/arm">
+      <param name="publish_frequency" type="double" value="200.0" />
+  </node>
+
+
+  <!-- load controllers to param server-->
+  <rosparam file="$(find arm_bringup)/config/control/joint_state_controller.yaml" command="load" ns='/arm'/>
+  <rosparam file="$(find arm_bringup)/config/control/arm_control.yaml" command="load" ns='/arm'/>
+  <!--rosparam file="$(find arm_bringup)/config/control/gripper_position_control.yaml" command="load"/-->
+
+
+  <!-- launch the controller manager for ros control -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" ns='/arm' args="joint_state_controller arm_controller"/>
+
+
+  <!--spawn the robot in gazebo world-->
+  
+  <node name="urdf_spawner_$(arg robot)" pkg="gazebo_ros" type="spawn_model" respawn="false" 
+  output="screen" ns='/arm' args="-urdf -param robot_description -model arm -z 0.0305"/>
+  
+
+
+</launch>
+
+

@@ -1,0 +1,303 @@
+diff --git a/src/arm_bringup/scripts/arm_env.py b/src/arm_bringup/scripts/arm_env.py
+index ff526b8..40df69f 100644
+--- a/src/arm_bringup/scripts/arm_env.py
++++ b/src/arm_bringup/scripts/arm_env.py
+@@ -93,6 +93,7 @@ class ArmEnvironment(gym.Env):
+         self.static_goal = static_goal
+         self.slow_step = slow_step
+         self.eef_pos = np.zeros(3)
++        self.goal_pos_list=np.array([[0.2,0.1,0.15],[-0.2,0.1,0.15],[-0.2,-0.1,0.15],[0.3,0.05,0.2],[0.15195154, 0.12716517, 0.10791227],[-0.2443342 , -0.26623122,  0.01693387],[ 0.20605877, -0.16932273,  0.18279588],[-0.25533529, -0.11042604,  0.14230928],[ 0.3006918 , -0.00099998,  0.16692274],[-0.07770072,  0.0790152 ,  0.29283088],[ 0.18422977, -0.16340892,  0.27168277],[ 0.28851676, -0.0598984 ,  0.20165042],[-0.09136536, -0.00854591,  0.20377172]])
+ 
+         self.zero = np.array([0,0,0,0])
+         #rospy.init_node('joint_position_node')
+@@ -107,12 +108,15 @@ class ArmEnvironment(gym.Env):
+         if(self.static_goal):
+             self.goal_pos = self.static_goal_pos
+         else:
+-            while(True):
+-                x_y = np.random.uniform(low = -0.4, high = 0.4, size = 2)
+-                z = np.random.uniform(low = 0, high = 0.4, size = 1)
+-                self.goal_pos = np.concatenate([x_y,z],axis=0)
+-                if(np.linalg.norm(self.goal_pos)<0.4):
+-                    break
++            index = np.random.randint(low=0,high=len(self.goal_pos_list)-1)
++            self.goal_pos = self.goal_pos_list[index]
++            print("Goal pos: ", self.goal_pos)
++            # while(True):
++            #     x_y = np.random.uniform(low = -0.4, high = 0.4, size = 2)
++            #     z = np.random.uniform(low = 0, high = 0.4, size = 1)
++            #     self.goal_pos = np.concatenate([x_y,z],axis=0)
++            #     if(np.linalg.norm(self.goal_pos)<0.4):
++            #         break
+         rospy.loginfo("Goal position defined")
+         self.pause_physics_proxy = rospy.ServiceProxy('/gazebo/pause_physics',Empty, persistent=False)
+         self.unpause_physics_proxy = rospy.ServiceProxy('/gazebo/unpause_physics',Empty, persistent=False)
+@@ -203,24 +207,78 @@ class ArmEnvironment(gym.Env):
+         #     self.reset_proxy()
+         # except (rospy.ServiceException) as e:
+         #     print("gazebo/reset_simulation service call failed")
++    
++    def step(self, action):
++        action = np.array(action)
+ 
++        self.joint_pos = np.clip(self.joint_state + action,a_min=self.joint_pos_low,a_max=self.joint_pos_high)
++        self.all_joints.move(self.joint_pos)
++        if(self.slow_step):
++            rospy.sleep(0.35)
++        else:
++            rospy.sleep(0.01)
++        (joint_angles, time_runout, arrived) = self.get_state()
++        reward = self.get_reward(time_runout, arrived)
++        if(time_runout or arrived):
++            done = True
++        else:
++            done = False
++        state = np.concatenate([joint_angles,self.goal_pos])
++        state = np.asarray(state, dtype = np.float32)
+ 
+-    def set_model_state(self, set_state_request):
+-        rospy.wait_for_service('/gazebo/set_model_state')
++        return state, reward, done, {}
++   
++    def reset(self):
++
++        rospy.wait_for_service('/gazebo/delete_model')
++        self.del_model('arm')
++        #self.del_model('simple_ball')
++        rospy.sleep(0.5)
++        rospy.wait_for_service('gazebo/reset_simulation')
+         try:
+-            self.state_proxy(set_state_request)
+-            return True
+-        except rospy.ServiceException as e:
+-            print('/gazebo/set_model_state service call failed')
+-            return False
++            self.reset_proxy()
++        except (rospy.ServiceException) as e:
++            print("gazebo/reset_simulation service call failed")
++        self.spawn_model(self.arm_model)
+ 
+-    def clock_subscriber_callback(self, clock):
+-        self.current_time = clock.clock.secs
++        #rospy.sleep(0.5)
++        #self.spawn_model(self.arm_model)
++        #rospy.sleep(1)
++        rospy.wait_for_service('arm/controller_manager/load_controller')
++        try:
++            self.load_controller_proxy(self.joint_state_controller_load)
++        except (rospy.ServiceException) as e:
++            print('arm/controller_manager/load_controller service call failed')
++        
++        rospy.wait_for_service('arm/controller_manager/load_controller')
++        try:
++            self.load_controller_proxy(self.arm_controller_load)
++        except (rospy.ServiceException) as e:
++            print('arm/controller_manager/load_controller service call failed')
++
++        rospy.wait_for_service('arm/controller_manager/switch_controller')
++        try:
++            self.switch_controller_proxy(self.switch_controller)
++        except (rospy.ServiceException) as e:
++            print('arm/controller_manager/switch_controller service call failed')
+ 
+-    def normalize_joint_state(self, joint_pos):
+-        # TODO implement normalization
+-        return joint_pos
+ 
++        self.set_new_goal()
++        rospy.sleep(1)
++       # rospy.sleep(3)
++        # self.last_goal_distance = self.get_goal_distance()
++        done = False
++        joint_angles, time_runout, arrived = self.get_state()
++        #self.last_joint = self.joint_state
++        #self.last_pos = pos
++        # diff_joint = np.zeros(self.num_joints)
++        state = np.concatenate([joint_angles,self.goal_pos])#.reshape(1, -1)
++        state = np.asarray(state, dtype = np.float32)
++        self.joint_state = np.zeros(4)
++        self.joint_pos = np.zeros(4)
++
++        return state
++    
+     def get_state(self):
+         self.hit_floor = False
+         joint_angles = self.joint_state
+@@ -236,14 +294,36 @@ class ArmEnvironment(gym.Env):
+             arrived=False
+         if(self.hit_floor or current_sim_time>=self.max_sim_time):
+             time_runout = True
+-            print("ran out of time or hit floor")
++            #print("ran out of time or hit floor")
+         else:
+             time_runout=False
+         return joint_angles, time_runout, arrived
++    
++    def get_reward(self, time_runout, arrive):
++        reward = -1*self.distance_reward_coeff*self.get_goal_distance()
++        if(self.hit_floor):
++            reward = reward - 50.0
++        if(time_runout and not arrive):
++            reward = reward - 25.0
++        if(arrive):
++            print("Arrived at goal")
++            reward += 25.0
++        return reward
++    
++    def set_model_state(self, set_state_request):
++        rospy.wait_for_service('/gazebo/set_model_state')
++        try:
++            self.state_proxy(set_state_request)
++            return True
++        except rospy.ServiceException as e:
++            print('/gazebo/set_model_state service call failed')
++            return False
++
++    def clock_subscriber_callback(self, clock):
++        self.current_time = clock.clock.secs
+ 
+     def joint_state_subscriber_callback(self, joint_state):
+         self.joint_state = np.array(joint_state.actual.positions)
+-        
+ 
+     def pause_physics(self):
+         rospy.wait_for_service('/gazebo/pause_physics')
+@@ -282,12 +362,13 @@ class ArmEnvironment(gym.Env):
+             # x_y = np.random.uniform(low = -0.4, high = 0.4, size = 2)
+             # z = np.random.uniform(low = 0, high = 0.4, size = 1)
+             # self.goal_pos = np.concatenate([x_y,z],axis=0)
+-            while(True):
+-                x_y = np.random.uniform(low = -0.4, high = 0.4, size = 2)
+-                z = np.random.uniform(low = 0, high = 0.4, size = 1)
+-                self.goal_pos = np.concatenate([x_y,z],axis=0) #np.array([-0.13242582 , 0.29086919 , 0.20275278])
+-                if(np.linalg.norm(self.goal_pos)<0.4 and np.linalg.norm(self.goal_pos)>0.1):
+-                    break
++            index = np.random.randint(low=0,high=len(self.goal_pos_list)-1)
++            self.goal_pos = self.goal_pos_list[index]
++                # x_y = np.random.uniform(low = -0.4, high = 0.4, size = 2)
++                # z = np.random.uniform(low = 0, high = 0.4, size = 1)
++                # self.goal_pos = np.concatenate([x_y,z],axis=0) #np.array([-0.13242582 , 0.29086919 , 0.20275278])
++                # if(np.linalg.norm(self.goal_pos)<0.4 and np.linalg.norm(self.goal_pos)>0.1):
++                #     break
+         #rospy.loginfo("Goal position defined")
+         #rospy.loginfo("Goal position: "+str(self.goal_pos))
+         # self.sphere_urdf = open(sphere_dir, "r").read()
+@@ -317,87 +398,11 @@ class ArmEnvironment(gym.Env):
+             print("/gazebo/failed to build the target")
+         self.unpause_physics()
+ 
+-    def get_reward(self, time_runout, arrive):
+-        reward = -1*self.distance_reward_coeff*self.get_goal_distance()
+-        if(self.hit_floor):
+-            reward = reward - 50.0
+-        if(time_runout and not arrive):
+-            reward = reward - 25.0
+-        if(arrive):
+-            print("Arrived at goal")
+-            reward += 25.0
+-        return reward
+-        
+-    def reset(self):
+-
+-        rospy.wait_for_service('/gazebo/delete_model')
+-        self.del_model('arm')
+-        #self.del_model('simple_ball')
+-        rospy.sleep(0.5)
+-        rospy.wait_for_service('gazebo/reset_simulation')
+-        try:
+-            self.reset_proxy()
+-        except (rospy.ServiceException) as e:
+-            print("gazebo/reset_simulation service call failed")
+-        self.spawn_model(self.arm_model)
+-
+-        #rospy.sleep(0.5)
+-        #self.spawn_model(self.arm_model)
+-        #rospy.sleep(1)
+-        rospy.wait_for_service('arm/controller_manager/load_controller')
+-        try:
+-            self.load_controller_proxy(self.joint_state_controller_load)
+-        except (rospy.ServiceException) as e:
+-            print('arm/controller_manager/load_controller service call failed')
+-        
+-        rospy.wait_for_service('arm/controller_manager/load_controller')
+-        try:
+-            self.load_controller_proxy(self.arm_controller_load)
+-        except (rospy.ServiceException) as e:
+-            print('arm/controller_manager/load_controller service call failed')
+-
+-        rospy.wait_for_service('arm/controller_manager/switch_controller')
+-        try:
+-            self.switch_controller_proxy(self.switch_controller)
+-        except (rospy.ServiceException) as e:
+-            print('arm/controller_manager/switch_controller service call failed')
+-
+-
+-        self.set_new_goal()
+-        rospy.sleep(1)
+-       # rospy.sleep(3)
+-        # self.last_goal_distance = self.get_goal_distance()
+-        done = False
+-        joint_angles, time_runout, arrived = self.get_state()
+-        #self.last_joint = self.joint_state
+-        #self.last_pos = pos
+-        # diff_joint = np.zeros(self.num_joints)
+-        state = np.concatenate([joint_angles,self.goal_pos])#.reshape(1, -1)
+-        state = np.asarray(state, dtype = np.float32)
+-        self.joint_state = np.zeros(4)
+-        self.joint_pos = np.zeros(4)
+-
+-        return state
+     def seed(self,seed):
+         pass
+         
+-    def step(self, action):
+-        action = np.array(action)
+-
+-        self.joint_pos = np.clip(self.joint_state + action,a_min=self.joint_pos_low,a_max=self.joint_pos_high)
+-        self.all_joints.move(self.joint_pos)
+-        if(self.slow_step):
+-            rospy.sleep(0.35)
+-        else:
+-            rospy.sleep(0.01)
+-        (joint_angles, time_runout, arrived) = self.get_state()
+-        reward = self.get_reward(time_runout, arrived)
+-        if(time_runout or arrived):
+-            done = True
+-        else:
+-            done = False
+-        state = np.concatenate([joint_angles,self.goal_pos])
+-        state = np.asarray(state, dtype = np.float32)
+-
+-        return state, reward, done, {}
++    def normalize_joint_state(self, joint_pos):
++        # TODO implement normalization
++        return joint_pos
++    
+ 
+diff --git a/src/arm_bringup/scripts/config_test.py b/src/arm_bringup/scripts/config_test.py
+index 1a96fd0..43e666b 100644
+--- a/src/arm_bringup/scripts/config_test.py
++++ b/src/arm_bringup/scripts/config_test.py
+@@ -21,9 +21,6 @@ while(True):
+     action = np.array(floatarr)
+     env.step(floatarr)
+     print("Goal Distance: ",env.get_goal_distance())
+-    reset = eval(input("Reset goal?"))
+-    if(reset):
+-        env.set_new_goal()
+ 
+ 
+ # alljoints.move(pos)
+diff --git a/src/arm_bringup/scripts/td3_train_test.py b/src/arm_bringup/scripts/td3_train_test.py
+index 4a52c5c..ee714a5 100644
+--- a/src/arm_bringup/scripts/td3_train_test.py
++++ b/src/arm_bringup/scripts/td3_train_test.py
+@@ -5,7 +5,7 @@ import rospy
+ import numpy as np
+ 
+ normalise_obs = False
+-static_goal = False
++static_goal = True
+ testing = False
+ slow_step = True
+ # conda activate RL_arm_noetic && source devel/setup.bash && tensorboard --logdir /home/devon/RL_Arm_noetic/results

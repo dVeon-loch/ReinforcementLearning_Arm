@@ -1,0 +1,22 @@
+arm_controller:
+  type: position_controllers/JointTrajectoryController
+  joints:
+     - plat_joint
+     - shoulder_joint
+     - forearm_joint
+     - wrist_joint
+  #gains:
+  #    plat_joint: {p: 100, i: 0.01, d: 1}
+  #    shoulder_joint: {p: 100, i: 0.01, d: 1}
+  #    forearm_joint: {p: 100, i: 0.01, d: 1}
+  #    wrist_joint: {p: 100, i: 0.01, d: 1}
+  constraints:
+      goal_time: 10.0
+
+  state_publish_rate: 50
+  action_monitor_rate: 30
+  stop_trajectory_duration: 0
+
+
+
+
