@@ -21,3 +21,26 @@ The "slow" suffix refers to the hardcoded delay that was added to deal with the 
 
 Important parameters such as the acceptable goal radius, max sim time per episode and others must be set in arm_env.py, and can be found at the top of the ArmEnvironment __init__ function.
 
+## Installation
+
+[Install ROS Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu). The system has been tested on a virtualbox VM running Ubuntu 20.04 but the performance of such a setup is limited, dual-booting is recommended. As the project went through a number of iterations the conda environment.yml file may contain some unneeded packages. However, to be safe it is recommended to install the environment file as follows:
+
+conda env create -f environment.yml
+
+conda activate RL_arm_noetic
+
+Verify that env has been created:
+
+conda env list
+
+Build ROS package:
+
+catkin make
+
+This env also contains the necessary dependencies to run ROS commands. Thus, all ROS commands should be run in a terminal that has the conda env active. Additionally, To activate the ROS core (recommended to do it seperately):
+
+roscore launch
+
+In a new terminal launch the simulation:
+
+
