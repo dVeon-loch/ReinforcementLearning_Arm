@@ -6,11 +6,11 @@ These results are taken from the policy learned by the [Soft Actor-Critic](https
 tf2rl ](https://github.com/keiohta/tf2rl#tf2rl "TF2RL Github Repo")
 ### Before and After (Static Goal)
 
-<img src="before.gif" width="250" height="250"/><img src="after.gif" width="250" height="250"/>
+<img src="media\before.gif" width="250" height="250"/><img src="media\after.gif" width="250" height="250"/>
 
 ### Before and After (Moving Goal)
 
-<img src="before_moving.gif" width="250" height="250"/><img src="after_moving.gif" width="250" height="250"/>
+<img src="media\before_moving.gif" width="250" height="250"/><img src="media\after_moving.gif" width="250" height="250"/>
 
 ## Info
 
