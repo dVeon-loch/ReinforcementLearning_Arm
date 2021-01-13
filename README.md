@@ -23,15 +23,20 @@ Important parameters such as the acceptable goal radius, max sim time per episod
 
 ## Installation
 
-[Install ROS Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu). The system has been tested on a virtualbox VM running Ubuntu 20.04 but the performance of such a setup is limited, dual-booting is recommended. As the project went through a number of iterations the conda environment.yml file may contain some unneeded packages. However, to be safe it is recommended to install the environment file as follows:
+[Install ROS Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu). Also:
+
+`echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc`
+
+`source ~/.bashrc`
+
+[Install Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
+
+
+The system has been tested on a virtualbox VM running Ubuntu 20.04 but the performance of such a setup is limited, dual-booting is recommended. As the project went through a number of iterations the conda environment.yml file may contain some unneeded packages. However, to be safe it is recommended to install the environment file as follows:
 
 conda env create -f environment.yml
 
 conda activate RL_arm_noetic
-
-Verify that env has been created:
-
-conda env list
 
 Build ROS package:
 
