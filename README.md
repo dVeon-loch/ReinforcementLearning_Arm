@@ -21,7 +21,7 @@ The "slow" suffix refers to the hardcoded delay that was added to deal with the 
 
 Important parameters such as the acceptable goal radius, max sim time per episode and others must be set in arm_env.py, and can be found at the top of the ArmEnvironment __init__ function.
 
-## Installation
+## Installation and Running Instructions
 
 [Install ROS Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu). Also:
 
@@ -37,15 +37,37 @@ The system has been tested on a virtualbox VM running Ubuntu 20.04 but the perfo
 conda env create -f environment.yml
 
 conda activate RL_arm_noetic
+`conda env list`
+
+This env also contains the necessary dependencies to run ROS commands. Thus, all ROS commands should be run in a terminal that has the conda env active. 
 
 Build ROS package:
 
-catkin make
+`catkin_make`
 
-This env also contains the necessary dependencies to run ROS commands. Thus, all ROS commands should be run in a terminal that has the conda env active. Additionally, To activate the ROS core (recommended to do it seperately):
+To activate the ROS core (recommended to do it seperately):
 
-roscore launch
+`roscore`
 
-In a new terminal launch the simulation:
+In a new terminal window launch the simulation:
 
+`roslaunch arm_bringup sim_bringup.launch world:=empty`
+
+Navigate to the scripts directory before running any scripts.
+
+`cd ReinforcementLearning_Arm/src/arm_bringup/scripts`
+
+To run scripts simply run the python file corresponding to the algorithm you are training/testing:
+
+e.g. `python sac_train_test.py`
+
+### Note: All algorithms are set up by default to test for 50 iterations using the learned models. To start from fresh you can delete/move the model folders elsewhere and set the algo_train_test.py file to training with either static goal set to true or false.
+
+## Viewing Results
+
+To view results in real time, you can use tensorboard. To open tensorboard enter the following into a new terminal and click on the given link:
+
+`tensorboard --logdir /path/to/ReinforcementLearning_Arm/results`  (copy the path of the results folder and enter it here)
+
+A custom graphing script, `results_graphing.py` was created to join all of the data together for each run for each algorithm, this is also in the scripts folder but it will need to be changed if you wish to use it with new data. Running this script as it is currently will display the results of the static goal training for all three algorithms. 
 

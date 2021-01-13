@@ -45,7 +45,7 @@ args = parser.parse_args()
 rospy.init_node('RL_agent')
 
 
-env = ArmEnvironment(static_goal=static_goal, slow_step=slow_step, larger_radius= not static_goal, )
+env = ArmEnvironment(static_goal=static_goal, slow_step=slow_step, larger_radius= not static_goal )
 test_env = ArmEnvironment(static_goal=static_goal, slow_step=slow_step, larger_radius= not static_goal, testing=testing, gentests=gentests)
 
 policy = SAC(
